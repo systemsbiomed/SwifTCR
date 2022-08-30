@@ -1,6 +1,5 @@
 from itertools import chain, combinations, count, groupby, starmap, repeat
-from multiprocessing import Pool
-from more_itertools import flatten, chunked, unique_justseen
+from more_itertools import unique_justseen
 import operator
 
 
@@ -47,4 +46,3 @@ def cluster(string_list, deletion=False):
     return [(p, c) for h, g in clusters_found 
         for p, c in valid_clusters(g, deletion) 
             if len(c) > 1]
-
