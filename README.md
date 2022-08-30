@@ -14,7 +14,8 @@ pip install swiftcr
 to create a networkX graph:
 
 ``` python
-from swifTCR import hamming_network
+from swifTCR import cluster
+cluster(["asd", "axd", "xyz"])
 ```
 
 ## License
