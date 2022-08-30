@@ -14,8 +14,10 @@ pip install swiftcr
 to create a networkX graph:
 
 ``` python
-from swifTCR import cluster
-cluster(["asd", "axd", "xyz"])
+from SwifTCR import cluster
+data = ["ABC", "AXC", "AC", "XBC"]
+clusters_found = cluster(data, deletion=True)
+print(clusters_found)
 ```
 
 ## License
