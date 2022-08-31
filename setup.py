@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.4.3' 
+VERSION = '0.4.4' 
 DESCRIPTION = 'Cluster sequences by distance one.'
 LONG_DESCRIPTION = 'Cluster sequences based on edit distance (hamming/levenshtein) equal to one.'
-REQUIREMENTS = ["more_itertools"],
+REQUIREMENTS = ["more_itertools", "findspark", "pyspark", "scipy", "numpy"],
 # Setting up
 setup(
        # the name must match the folder name 'verysimplemodule'
