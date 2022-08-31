@@ -32,8 +32,9 @@ def replacement(hash_clusters):
     hash_clusters = starmap(lambda p, c: map(operator.itemgetter(-1), c), chain.from_iterable(hash_clusters))
     return hash_clusters
 
-def cluster(string_list):
-    clusters_found = hash_clsuter(string_list, False)
+def cluster(cdr3_list):
+    cdr3_list = filter(lambda s: isinstance(s, str) and len(s) >= 2, cdr3_list)
+    clusters_found = hash_clsuter(cdr3_list, False)
     clusters_found = replacement(clusters_found)
     clusters_found = filter(lambda c: len(c) > 1, map(list, clusters_found))
     clusters_found = list(clusters_found)
