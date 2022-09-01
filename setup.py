@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.4.8' 
+VERSION = '0.4.9' 
 DESCRIPTION = 'Cluster sequences by distance one.'
 LONG_DESCRIPTION = 'Cluster sequences based on edit distance (hamming/levenshtein) equal to one.'
 REQUIREMENTS = ["findspark", "pyspark", "scipy", "numpy", "pandas"],
