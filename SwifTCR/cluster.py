@@ -37,21 +37,20 @@ def deletion(hash_grouped):
 
     return clusters
 
-def preprocess(sequences, min_len=2, max_len=None):
-    '''
-    Filter sequences by length.
+def preprocess(sequences,  min_len, max_len):
 
-    Given a list of sequences, return a list of sequences with length between min_len and max_len.
-    '''
-    if min_len < 2:
+    if not isinstance(min_len, int) or min_len < 2:
         min_len = 2
-    if max_len is None:
-        return filter(lambda s: isinstance(s, str) and len(s) >= min_len, sequences)
-    return filter(lambda s: isinstance(s, str) and len(s) >= min_len and len(s) <= max_len, sequences)
 
-def cluster(string_list, with_deletion=False):
-    
-    string_list = preprocess(string_list)
+    if not isinstance(max_len, int):
+        return filter(lambda s: isinstance(s, str) and len(s) >= min_len, sequences)
+    elif max_len <= min_len:
+        return filter(lambda s: isinstance(s, str) and len(s) == min_len, sequences)
+    else:
+        return filter(lambda s: isinstance(s, str) and len(s) >= min_len and len(s) <= max_len, sequences)
+
+def cluster(string_list, with_deletion=False, minmax_size=(2, None)):
+    string_list = preprocess(string_list, *minmax_size)
     
     sub_keys = hash_sort(string_list, with_deletion)
     
@@ -67,7 +66,7 @@ def cluster(string_list, with_deletion=False):
     return [{s[-1] for s in c} for c in clusters]
 
 
-def cluster_file(file_path, cluster_column="aaSeqCDR3", has_h=0, delim='\t'):
+def cluster_file(file_path, cluster_column="aaSeqCDR3", has_h=0, delim='\t', with_deletion=False, minmax_size=(2, None)):
     import pandas as pd
     col_seq_list = pd.read_csv(file_path, usecols=[cluster_column], header=has_h, sep=delim).iloc[:,0].to_list()
-    return cluster(col_seq_list)
+    return cluster(col_seq_list, with_deletion, minmax_size)
