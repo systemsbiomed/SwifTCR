@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 VERSION = '0.4.9' 
 DESCRIPTION = 'Cluster sequences by distance one.'
 LONG_DESCRIPTION = 'Cluster sequences based on edit distance (hamming/levenshtein) equal to one.'
-REQUIREMENTS = ["findspark", "pyspark", "scipy", "numpy", "pandas"],
+REQUIREMENTS = ["findspark", "pyspark", "scipy", "numpy", "pandas", "networkx", "more_itertools"],
 
 setup(
         name="SwifTCR", 

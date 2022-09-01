@@ -1,9 +1,8 @@
+from SwifTCR.output import return_type
+from preprocess import prepare, cluster_mixcr_cdr3
 from itertools import combinations, count, groupby, repeat, starmap, chain
 import operator
 
-def tokenize(string, ss):
-    tokens = combinations(string, len(string)-1)
-    return tokens if ss else chain([tuple(string)], tokens)
 
 def hash_sort(sequences, substings_only):
     
@@ -37,24 +36,16 @@ def deletion(hash_grouped):
 
     return clusters
 
-def preprocess(sequences,  min_len, max_len):
-
-    if not isinstance(min_len, int) or min_len < 2:
-        min_len = 2
-
-    if not isinstance(max_len, int):
-        return filter(lambda s: isinstance(s, str) and len(s) >= min_len, sequences)
-    elif max_len <= min_len:
-        return filter(lambda s: isinstance(s, str) and len(s) == min_len, sequences)
-    else:
-        return filter(lambda s: isinstance(s, str) and len(s) >= min_len and len(s) <= max_len, sequences)
-
-def cluster(string_list, with_deletion=False, minmax_size=(2, None)):
-    string_list = preprocess(string_list, *minmax_size)
+def get_clusters(string_list, minmax_size=(2, None), delete=False, mixcr=None, output=None):
     
-    sub_keys = hash_sort(string_list, with_deletion)
+    if mixcr:
+        string_list = cluster_mixcr_cdr3(mixcr)
     
-    if with_deletion:
+    string_list = prepare(string_list, *minmax_size)
+    
+    sub_keys = hash_sort(string_list, delete)
+    
+    if delete:
         clusters = hash_clsuter(sub_keys, [0])
         clusters = starmap(lambda h, g: deletion(g), clusters)
         clusters = chain(*clusters)
@@ -63,10 +54,7 @@ def cluster(string_list, with_deletion=False, minmax_size=(2, None)):
         clusters = starmap(lambda k, g: set(g), clusters)
         clusters = filter(lambda c: len(c)>1, clusters)
     
-    return [{s[-1] for s in c} for c in clusters]
+    clusters = [{s[-1] for s in c} for c in clusters]
 
+    return return_type(clusters, output) if output else clusters
 
-def cluster_file(file_path, cluster_column="aaSeqCDR3", has_h=0, delim='\t', with_deletion=False, minmax_size=(2, None)):
-    import pandas as pd
-    col_seq_list = pd.read_csv(file_path, usecols=[cluster_column], header=has_h, sep=delim).iloc[:,0].to_list()
-    return cluster(col_seq_list, with_deletion, minmax_size)
