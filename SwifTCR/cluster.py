@@ -1,41 +1,55 @@
-from itertools import chain, combinations, count, groupby, starmap, repeat
-from more_itertools import unique_justseen
+from itertools import combinations, count, groupby, repeat, starmap, chain
 import operator
 
+def tokenize(string, ss):
+    tokens = combinations(string, len(string)-1)
+    return tokens if ss else chain([tuple(string)], tokens)
 
-def skip_comb(string):
-    return combinations(string, len(string)-1)
-    # return map(lambda ss: "".join(ss), combinations(string, len(string)-1))
 
-def comb_substrings(sequence):
-    '''returns all subsequences of the given sequence with a missing character at a specific index.'''
-    return zip(skip_comb(sequence), count(len(sequence)-1, -1), repeat(sequence))
+def hash_sort(sequences, substings_only):
+    
+    def skip_comb(string, full_string):
+        comb = combinations(string, len(string)-1)
+        comb = chain([tuple(string)], comb) if full_string else comb
+        hash_comb = zip(map(hash, comb), count(-1), repeat(string))
+        return hash_comb
+    
+    hash_key = map(lambda s: skip_comb(s, substings_only), sequences)
+    return sorted(chain(*hash_key), key=lambda k:k[0]+k[1])
 
-def skip_substrings(string_list, also_sting):
-    ''' hashes all subsequences of the given sequences which are all substrings with a missing character at any possible index in a string. '''
-    tokens = map(comb_substrings, string_list)
-    if also_sting:
-        tokens = chain([map(lambda s: (tuple(s), -1, s),string_list)], tokens)
-    return chain(*tokens)
-def hash_sort(substings):
-    return sorted(substings, key=lambda k:(hash(k[0])+k[1], k[-1]))
 
-def hash_clsuter(string_list, substring_only):
-    substring_keys = skip_substrings(string_list, substring_only)
-    sorted_hash_keys = hash_sort(substring_keys)
-    sorted_hash_keys = unique_justseen(sorted_hash_keys)
-    grouped = groupby(sorted_hash_keys, key=lambda x: hash(x[0]))
+def hash_clsuter(sorted_keys, key_i):
+    grouped = groupby(sorted_keys, key=operator.itemgetter(*key_i))
     return grouped
 
-def replacement(hash_clusters):
-    hash_clusters = starmap(lambda h, g: groupby(g, key=operator.itemgetter(1)), hash_clusters)
-    hash_clusters = starmap(lambda p, c: map(operator.itemgetter(-1), c), chain.from_iterable(hash_clusters))
-    return hash_clusters
+def deletion(hash_grouped):
+    clusters, gap = [], None
+    for p, c in groupby(hash_grouped, key=lambda k: k[1]):
+        
+        if p == -1:
+            gap = set(c)
+            continue
+        elif gap:
+            c = set(c).union(gap)
+        else:
+            c = set(c)
+            
+        if len(c)>1:
+            clusters.append(c)
 
-def cluster(cdr3_list):
-    cdr3_list = filter(lambda s: isinstance(s, str) and len(s) >= 2, cdr3_list)
-    clusters_found = hash_clsuter(cdr3_list, False)
-    clusters_found = replacement(clusters_found)
-    clusters_found = filter(lambda c: len(c) > 1, map(list, clusters_found))
-    clusters_found = list(clusters_found)
-    return clusters_found
+    return clusters
+
+def cluster(string_list, with_deletion=False):
+    
+    sub_keys = hash_sort(string_list, with_deletion)
+    
+    if with_deletion:
+        clusters = hash_clsuter(sub_keys, [0])
+        clusters = starmap(lambda h, g: deletion(g), clusters)
+        clusters = chain(*clusters)
+    else:
+        clusters = hash_clsuter(sub_keys, [0, 1])
+        clusters = starmap(lambda k, g: set(g), clusters)
+        clusters = filter(lambda c: len(c)>1, clusters)
+    
+    return [{s[-1] for s in c} for c in clusters]
