@@ -5,7 +5,6 @@ def tokenize(string, ss):
     tokens = combinations(string, len(string)-1)
     return tokens if ss else chain([tuple(string)], tokens)
 
-
 def hash_sort(sequences, substings_only):
     
     def skip_comb(string, full_string):
@@ -16,7 +15,6 @@ def hash_sort(sequences, substings_only):
     
     hash_key = map(lambda s: skip_comb(s, substings_only), sequences)
     return sorted(chain(*hash_key), key=lambda k:k[0]+k[1])
-
 
 def hash_clsuter(sorted_keys, key_i):
     grouped = groupby(sorted_keys, key=operator.itemgetter(*key_i))
@@ -39,7 +37,21 @@ def deletion(hash_grouped):
 
     return clusters
 
+def preprocess(sequences, min_len, max_len):
+    '''
+    Filter sequences by length.
+
+    Given a list of sequences, return a list of sequences with length between min_len and max_len.
+    '''
+    if min_len < 2:
+        min_len = 2
+    if max_len is None:
+        return filter(lambda s: isinstance(s, str) and len(s) >= min_len, sequences)
+    return filter(lambda s: isinstance(s, str) and len(s) >= min_len and len(s) <= max_len, sequences)
+
 def cluster(string_list, with_deletion=False):
+    
+    string_list = preprocess(string_list)
     
     sub_keys = hash_sort(string_list, with_deletion)
     
@@ -53,3 +65,9 @@ def cluster(string_list, with_deletion=False):
         clusters = filter(lambda c: len(c)>1, clusters)
     
     return [{s[-1] for s in c} for c in clusters]
+
+
+def cluster_file(file_path, cluster_column="aaSeqCDR3", has_h=0, delim='\t'):
+    import pandas as pd
+    col_seq_list = pd.read_csv(file_path, usecols=[cluster_column], header=has_h, sep=delim).iloc[:,0].to_list()
+    return cluster(col_seq_list)

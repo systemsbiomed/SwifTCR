@@ -1,12 +1,11 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.4.6' 
+VERSION = '0.4.7' 
 DESCRIPTION = 'Cluster sequences by distance one.'
 LONG_DESCRIPTION = 'Cluster sequences based on edit distance (hamming/levenshtein) equal to one.'
-REQUIREMENTS = ["more_itertools", "findspark", "pyspark", "scipy", "numpy"],
-# Setting up
+REQUIREMENTS = ["findspark", "pyspark", "scipy", "numpy", "pandas"],
+
 setup(
-       # the name must match the folder name 'verysimplemodule'
         name="SwifTCR", 
         version=VERSION,
         author="ido",
