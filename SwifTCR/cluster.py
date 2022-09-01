@@ -37,7 +37,7 @@ def deletion(hash_grouped):
 
     return clusters
 
-def preprocess(sequences, min_len, max_len):
+def preprocess(sequences, min_len=2, max_len=None):
     '''
     Filter sequences by length.
 
