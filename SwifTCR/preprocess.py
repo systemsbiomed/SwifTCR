@@ -1,11 +1,13 @@
+import pandas as pd
+import os
 
 
+def prepare(sequence_list, min_len, max_len):
+    '''
+    Filter sequences by length.
 
-def prepare(sequence_list,  min_len, max_len):
-    from more_itertools import flatten
-
-    sequence_list = flatten(sequence_list)
-    
+    Given a list of sequences, return a list of sequences with length between min_len and max_len.
+    '''
     if not isinstance(min_len, int) or min_len < 2:
         min_len = 2
 
@@ -18,28 +20,32 @@ def prepare(sequence_list,  min_len, max_len):
 
 
 
-def read_mixcr_cdr3(mixcr_file, colname='aaSeqCDR3', delim='\t'):
-    import pandas as pd
-    import os
+# AIRR-seq community format out headers
+out_headers = ['sequence_id', 'sequence', 'v_call', 'd_call', 'j_call', 'junction_aa', 'duplicate_count',
+            'rev_comp', 'productive', 'sequence_alignment', 'germline_alignment',
+            'junction', 'v_cigar', 'd_cigar', 'j_cigar']
+
+
+def read_mixcr_cdr3(input_path, get_column='aaSeqCDR3', delim='\t'):
+    '''
+    Read mixcr output.
+
+    Read and return list of the specified column data Path to the mixcr output from the given file / list of file / directory path.
+
+    '''
+    if isinstance(input_path, str):
+        if os.path.isdir(input_path):
+            input_path = [os.path.join(input_path, file) for file in os.listdir(input_path)]
+        else:
+            input_path = [input_path]
+
+    def read_sequences(mixcr_file):
+        if os.path.exists(mixcr_file) and os.path.isfile(mixcr_file):
+            df = pd.read_csv(mixcr_file, header=0, sep=delim)
+            if get_column in df.columns:
+                return df[get_column].tolist()
+        return []
     
-    if os.path.exists(mixcr_file) and os.path.isfile(mixcr_file):
-        df = pd.read_csv(mixcr_file, header=0, sep=delim)
-        if colname in df.columns:
-            return df[colname].tolist()
-    
-    return []
+    return [read_sequences(file_path) for file_path in input_path] if isinstance(input_path, list) else []
 
 
-def cluster_mixcr_cdr3(input_data):
-    import os
-
-    if isinstance(input_data, str):
-        if os.path.isfile(input_data):
-            input_data = [input_data]
-        elif os.path.isdir(input_data):
-            input_data = [os.path.join(input_data, file) for file in os.listdir(input_data)]
-
-    if isinstance(input_data, list):
-        return [read_mixcr_cdr3(file_path) for file_path in input_data]
-    
-    return []

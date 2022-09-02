@@ -1,60 +1,68 @@
-from SwifTCR.output import return_type
-from preprocess import prepare, cluster_mixcr_cdr3
-from itertools import combinations, count, groupby, repeat, starmap, chain
-import operator
+from itertools import combinations, count, repeat, chain
+from more_itertools import split_when, unique_justseen, prepend
 
 
-def hash_sort(sequences, substings_only):
-    
-    def skip_comb(string, full_string):
-        comb = combinations(string, len(string)-1)
-        comb = chain([tuple(string)], comb) if full_string else comb
-        hash_comb = zip(map(hash, comb), count(-1), repeat(string))
-        return hash_comb
-    
-    hash_key = map(lambda s: skip_comb(s, substings_only), sequences)
-    return sorted(chain(*hash_key), key=lambda k:k[0]+k[1])
 
-def hash_clsuter(sorted_keys, key_i):
-    grouped = groupby(sorted_keys, key=operator.itemgetter(*key_i))
-    return grouped
+__all__ = ['get_clusters']
 
-def deletion(hash_grouped):
-    clusters, gap = [], None
-    for p, c in groupby(hash_grouped, key=lambda k: k[1]):
-        
-        if p == -1:
-            gap = set(c)
+
+
+def get_clusters(sequence_list, replacement_only=True):
+    '''
+    group together strings with single edit distance 
+
+    Create a list containing all strings sub-groups sharing a single
+    charachter replacement or deletion at the same possition.
+
+    Parameters
+    ----------
+    sequence_list : list
+        list of strings
+    replacement_only : bool, optional
+        if True returns sub-groups of the given stings sharing a single 
+        character replacement. For False also character deletion is 
+        included, by default True
+
+    Returns
+    -------
+    list
+        list of string sets
+    '''
+    return replacement(sequence_list) if replacement_only else replacement_and_deletion(sequence_list)
+
+
+def hash_sort(sequences, substring_only=True):
+
+    def skip_comb(string):
+        hash_sub = map(hash, combinations(string, len(string)-1))
+        return zip(hash_sub, count(), repeat(string))
+
+    def skip_comb_del(string):
+        hash_sub = map(hash, prepend(tuple(string), combinations(string, len(string)-1)))
+        return zip(hash_sub, count(), repeat(string))
+
+    sub_keys = map(skip_comb, sequences) if substring_only else map(skip_comb_del, sequences)
+    sorted_keys = sorted(chain(*sub_keys), key=lambda k:k[0]+k[1])
+    return unique_justseen(sorted_keys)
+
+def replacement(sequence_list):
+    sorted_keys = hash_sort(sequence_list)
+    clusters = split_when(sorted_keys, lambda s1,s2: s1[:2] != s2[:2])
+    return [{s[-1] for s in c} for c in clusters if len(c)>1]
+
+
+def replacement_and_deletion(sequence_list):
+
+    sorted_keys = hash_sort(sequence_list, substring_only=False)  
+    clusters = []
+    for hash_groups in split_when(sorted_keys, lambda s1,s2: s1[0] != s2[0]):
+        if len(hash_groups)>1:
             continue
-        elif gap:
-            c = set(c).union(gap)
+        if not hash_groups[0][1]:
+            clusters += [{s[-1] for s in prepend(hash_groups[0], cluster)} 
+                for cluster in split_when(hash_groups[1:], lambda s1,s2: s1[1] != s2[1])]
         else:
-            c = set(c)
-            
-        if len(c)>1:
-            clusters.append(c)
-
+            clusters += [{s[-1] for s in cluster} 
+                for cluster in split_when(hash_groups, lambda s1,s2:s1[1]!=s2[1]) if len(cluster)>1]
     return clusters
-
-def get_clusters(string_list, minmax_size=(2, None), delete=False, mixcr=None, output=None):
-    
-    if mixcr:
-        string_list = cluster_mixcr_cdr3(mixcr)
-    
-    string_list = prepare(string_list, *minmax_size)
-    
-    sub_keys = hash_sort(string_list, delete)
-    
-    if delete:
-        clusters = hash_clsuter(sub_keys, [0])
-        clusters = starmap(lambda h, g: deletion(g), clusters)
-        clusters = chain(*clusters)
-    else:
-        clusters = hash_clsuter(sub_keys, [0, 1])
-        clusters = starmap(lambda k, g: set(g), clusters)
-        clusters = filter(lambda c: len(c)>1, clusters)
-    
-    clusters = [{s[-1] for s in c} for c in clusters]
-
-    return return_type(clusters, output) if output else clusters
 

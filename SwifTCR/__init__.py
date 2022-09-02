@@ -1,3 +1,8 @@
-from .cluster import cluster, cluster_file
-from .spark import spark_cluster_rdd, spark_cluster, spark_cluster_file
+from .cluster import get_clusters
+from .spark import spark_cluster
 from .random_data import random_repertoire
+
+
+__all__ = ['get_clusters',
+           'spark_cluster',
+           'random_repertoire']
