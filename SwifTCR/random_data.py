@@ -6,13 +6,7 @@ import scipy.stats as ss
 __all__ = ['random_repertoire']
 
 
-
-AA =   ['A', 'C', 'D', 'E', 'F', 
-        'G', 'H', 'I', 'K', 'L', 
-        'M', 'N', 'P', 'Q', 'R', 
-        'S', 'T', 'V', 'W', 'Y']
-
-def random_repertoire(seq_n, min_len=8, max_len=18, alphabet=None):
+def random_repertoire(seq_n, min_len=8, max_len=18, char_n=20, alphabet='ACDEFGHIKLMNPQRSTVWY'):
     '''
     Generate list of CDR3 amino acid sequences
 
@@ -35,8 +29,8 @@ def random_repertoire(seq_n, min_len=8, max_len=18, alphabet=None):
     list
         Strings of amino acid sequences
     '''
-    if isinstance(alphabet, int):
-        alphabet = AA[:alphabet]
+    if isinstance(char_n, int):
+        alphabet = alphabet[:char_n]
 
     sequence_lengths = normal_dist_int(min_len, max_len, seq_n, 2)
     return ["".join(random.choices(alphabet, k=seq_size)) for seq_size in sequence_lengths]
