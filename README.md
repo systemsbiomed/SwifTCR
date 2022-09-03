@@ -3,22 +3,52 @@ SwifTCR is a Python package provides a relatively quick way to find all sequence
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Install from [PyPI](https://pypi.org/project/SwifTCR/) by typing into your terminal or command-line:
 
 ``` bash
 pip install swiftcr
 ```
 
-## Usage/Examples
+## Examples
 
-to create a networkX graph:
+#### Cluster sequence lists
 
-``` python
-from SwifTCR import cluster
-data = ["ABC", "AXC", "AC", "XBC"]
-clusters_found = cluster(data, deletion=True)
-print(clusters_found)
+```python
+from swifTCR import get_clusters 
+
+seq_list = [['ABC', 'AXC', 'ABBC'], ['ABB', 'AC']]
+get_clusters(seq_list, repalcement_only=False)
+
 ```
+
+#### Generate random CDR3 and create a networkX graph:
+
+```python
+from SwifTCR import rand_rep, get_network
+
+random_cdr3_list = rand_rep(seq_n=100, min_len=3, max_len=8)
+# Single amino acid replacement network graph
+G = get_network(random_cdr3_list)
+
+```
+
+#### Cluster from multiple MiCXR output files in a directory with spark
+
+```python
+from swifTCR import spark_cluster_file
+
+spark_cluster('path/to/dir', 
+                file_type='mixcr', 
+                filename='.*TRCB.txt',
+                out='path/to/save/spark/csv/')
+
+```
+
+
+## Documentation
+
+[Documentation](https://linktodocumentation)
+
 
 ## License
 

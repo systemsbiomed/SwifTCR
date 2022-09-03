@@ -8,7 +8,7 @@ __all__ = ['get_clusters']
 
 
 def hash_sort(sequences, substring_only=True):
-    
+
     def skip_comb(string):
         hash_sub = map(hash, combinations(string, len(string)-1))
         return zip(hash_sub, count(), repeat(string))
